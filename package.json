@@ -20,6 +20,7 @@
   "dependencies": {
     "dotenv": "^17.2.3",
     "mongoose": "^9.0.0",
+    "rimraf": "^6.1.2",
     "viem": "^2.40.3"
   }
 }
