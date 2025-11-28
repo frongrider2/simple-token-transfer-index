@@ -55,6 +55,40 @@ flowchart LR
   INDEX --> POLL
 ```
 
+### Interval Query Algorithm (Blocks & Events)
+
+The core polling logic is implemented in `src/index.ts` (`main` loop + `setInterval`) and `src/utils/events.ts` (`queryTransferEvents`). The diagram below shows how block ranges are calculated and processed on each interval:
+
+```mermaid
+flowchart TD
+  A[Start service main] --> B[Connect MongoDB]
+  B --> C[Get current block]
+  C --> D{Has last polling range}
+  D -- No --> E[Set initial range]
+  D -- Yes --> F[Set range after last block]
+  E --> G[Call queryTransferEvents]
+  F --> G
+
+  subgraph Query[queryTransferEvents]
+    Q1[Get current block again]
+    Q2[Compute fetch range]
+    Q3[Get contract events]
+    Q4[Save events to TransactionModel]
+    Q5[Save range to PollingModel]
+  end
+
+  G --> Q1
+  Q5 --> H[Set last processed block]
+  H --> I[Interval loop]
+  I --> J[Get latest block]
+  J --> K{New blocks}
+  K -- No --> I
+  K -- Yes --> L[Compute next range]
+  L --> M[Call queryTransferEvents again]
+  M --> N[Update last processed block]
+  N --> I
+```
+
 ### Data Model
 
 - **Transactions (`TransactionModel`)**
@@ -148,15 +182,31 @@ This will:
 - Determine the last successful polling window from `PollingModel` and process any missing blocks.
 - Enter a polling loop (interval defined in `src/index.ts`) to fetch new `Transfer` events and store them.
 
-### Build (optional)
+### Build & Scripts
 
-To compile TypeScript to JavaScript and run:
+- **Build** (from `package.json` `build` script):
 
-```bash
-yarn build
-yarn start
-```
+  ```bash
+  yarn build        # runs: rimraf dist && tsc
+  # or
+  npm run build
+  ```
 
-Output is written to the `dist` directory (see `tsconfig.json`).
+  Output is written to the `dist` directory (see `tsconfig.json`).
 
+- **Start compiled app** (from `package.json` `start` script):
+
+  ```bash
+  yarn start        # runs: node dist/index.js
+  # or
+  npm start
+  ```
+
+- **Dev mode** (from `package.json` `dev` script, already referenced above):
+
+  ```bash
+  yarn dev          # runs: npx nodemon
+  # or
+  npm run dev
+  ```
 
