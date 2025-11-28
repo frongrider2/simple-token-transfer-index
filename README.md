@@ -150,10 +150,11 @@ This will:
 
 ### Build (optional)
 
-To compile TypeScript to JavaScript:
+To compile TypeScript to JavaScript and run:
 
 ```bash
 yarn build
+yarn start
 ```
 
 Output is written to the `dist` directory (see `tsconfig.json`).

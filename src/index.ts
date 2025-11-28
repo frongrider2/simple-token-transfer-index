@@ -20,10 +20,12 @@ async function main() {
 
   const currentBlock = await publicClient.getBlockNumber();
 
+  console.log(`ERC20 Transfer Watcher start 🚀: Current block: ${currentBlock}`);
+
   // Find last successful polling range
   const lastPolling = await PollingModel.findOne({ isSuccess: true })
     .sort({ toBlock: -1 })
-    .lean();
+    .lean(); 
 
   // Determine initial range
   let fromBlock: bigint;
@@ -69,6 +71,5 @@ async function main() {
     }
   }, POLLING_INTERVAL_MS);
 }
-
 
 main();
