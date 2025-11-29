@@ -210,3 +210,26 @@ This will:
   npm run dev
   ```
 
+### Design Rationale & Alternatives
+
+- **Restart-safe via persisted polling ranges**
+  - This service persists each successfully processed `[fromBlock, toBlock]` window in `PollingModel`, so on restart it can deterministically resume from the last completed block instead of relying on in-memory state or ad-hoc "latest block" heuristics.
+  - **Alternative**: A simpler design might only track the last processed block in memory or a single config document; this is brittle (crashes / deploys can cause gaps or double-processing) and makes audits harder, whereas explicit ranges create a verifiable history of what was processed.
+
+- **Separation of concerns: transactions vs polling metadata**
+  - Storing transfer data in `TransactionModel` and ranges in `PollingModel` cleanly separates **business data** (what happened on-chain) from **operational data** (how and when it was fetched), which simplifies querying and future evolution (e.g., adding new event types without changing how ranges are tracked).
+  - **Alternative**: Embedding polling metadata into each transaction record couples ingestion logic to storage shape, making backfills, re-syncs, or parallel consumers harder and more error-prone.
+
+- **Idempotent, append-only write pattern**
+  - Using `(txHash, logIndex)` semantics and recording only successfully completed ranges encourages idempotent writes and avoids complex "partial state" cleanups; re-running the same range is safe as long as unique constraints / upserts are used.
+  - **Alternative**: Designs that mutate a single "cursor" document or try to mark partially processed ranges often require careful transactional semantics; they are more fragile in the face of process crashes or RPC inconsistencies.
+
+- **Polling-based event ingestion over long-lived subscriptions**
+  - A periodic query loop using `viem` is robust against ephemeral RPC failures, load balancer restarts, and node upgrades, and can be horizontally scaled by sharding block ranges if needed.
+  - **Alternative**: WebSocket or pub/sub subscriptions can provide lower latency, but they introduce more moving parts (connection lifecycle, reconnection gaps, backfill logic) and are harder to make provably complete for historical data; polling offers a simpler, easier-to-reason-about baseline.
+
+- **Explicit environment-driven configuration**
+  - Chain, RPC URLs, and Mongo credentials are provided via `.env`, so the same codebase can target multiple environments (testnet/mainnet, staging/production) without changes, and secrets remain out of the repository.
+  - **Alternative**: Hardcoding RPC endpoints or DB URIs in code or config files couples deployment details to source control and makes rotation, environment parity, and secret management more difficult.
+
+Overall, this design favors **simplicity, observability, and safety** over premature optimization: ranges are explicit, state is restart-safe, and concerns are separated, which makes it easier to extend the watcher (e.g., support additional events, new tokens, or more complex reconciliation logic) without reworking the core architecture.

@@ -6,7 +6,7 @@ export interface ITransaction extends Document {
   logIndex: number;
   from: string;
   to: string;
-  value: number;
+  value: string;
 }
 
 const TransactionSchema = new Schema<ITransaction>(
@@ -37,7 +37,7 @@ const TransactionSchema = new Schema<ITransaction>(
       index: true,
     },
     value: {
-      type: Number,
+      type: String,
       required: true,
     },
   },
