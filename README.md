@@ -135,7 +135,6 @@ Create a `.env` file in the project root (see `.gitignore` for exclusion). Requi
 #### 1. Install dependencies
 
 ```bash
-cd /Users/frongza500/Desktop/Work/alpha/task1
 yarn install
 ```
 
@@ -150,7 +149,6 @@ npm install
 Make sure Docker is running, then:
 
 ```bash
-cd /Users/frongza500/Desktop/Work/alpha/task1
 make dbup
 ```
 
@@ -171,7 +169,6 @@ make dbdown
 Development mode with `nodemon` + `ts-node`:
 
 ```bash
-cd /Users/frongza500/Desktop/Work/alpha/task1
 yarn dev
 ```
 
