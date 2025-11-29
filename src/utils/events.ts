@@ -31,7 +31,7 @@ export const queryTransferEvents = async (
       logIndex: event.logIndex,
       from: event.args.from,
       to: event.args.to,
-      value: +event.args.value.toString(),
+      value: event.args.value.toString(),
     })
       .then(() => {
         console.log(
